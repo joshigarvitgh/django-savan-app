@@ -1,0 +1,11 @@
+{% if all_albums %}
+	<h3>Here are all my albums</h3>
+	<ul>
+		{% for album in all_albums %}
+		<img src="{{ album.album_logo.url }}">
+		<li><a href="#"> {{ album.album_title }} </a></li>
+		{% endfor %}
+	</ul>
+{% else %}
+	<h3>You don't have any album.</h3>
+{% endif %}
