@@ -1,0 +1,203 @@
+2 : Start project
+Run following code on cmd or terminal
+django-admin startproject saavn_wit_image_upload
+
+python manage.py runserver
+
+Visit following link
+127.0.0.1:8000
+
+
+3 : Create new app
+Run following code on cmd or terminal
+python manage.py startapp music
+
+
+
+4 : Basic discription of app
+models.py is blueprint of how you store data inside database table
+views.py it takes user request and they give it back some thing.
+
+
+
+5 : Create Database and Tables
+Run following code on cmd or terminal to migrate database
+	"
+	python manage.py migrate
+	"
+It looks into settings.py and look for installed apps look into that app folder see which table is required to run this app and try to create those inside our database
+
+
+
+6 : Create admin user
+run following command
+	"
+	python manage.py createsuperuser # add details asked
+	"
+
+Visit following link
+	127.0.0.1:8000/admin
+
+Login using details which you have entered while creating super user.
+
+
+7 : Views
+create urls.py inside music app
+copy original urls.py code inside this
+
+write following code inside above music/urls.py
+	"
+	from . import views # look in folder for views.py
+	"
+	"
+	urlpatterns = [
+		url(r'^$', views.index, name="index"),
+	]
+	"
+
+Write following code inside main urls.py
+	"
+	from django.conf.urls import include, url
+
+	url(r'^music/', include('music.urls')),
+	"
+
+Write following code inside music/views.py
+	"
+	from django.http import HttpResponse
+
+	def index(request):
+		return HttpResponse("<h1>Hello World!</h1>")
+	"
+
+
+
+8 : Creating model
+model is blueprint how you store ur data
+
+write first model class inside models.py
+	"
+	class Album(models.Model): # every class it has to inherites from models.Model
+		artist = models.CharField(max_length=250)
+		album_title = models.CharField(max_length=250)
+		genre = models.CharField(max_length=250)
+		album_logo = models.FileField(max_length=250)
+
+
+	class Song(models.Model): # every class it has to inherites from models.Model
+		album = models.ForeignKey(Album, on_delete=models.CASCADE)
+		file_type = models.CharField(max_length=250)
+		song_title = models.CharField(max_length=250)
+	"
+
+
+
+9 : Activating models
+
+go into settings.py file to activate our models
+	"
+	INSTALLED_APPS = [
+		'music.apps.MusicConfig',
+	]
+	"
+
+run following command to create migration
+	"
+	python manage.py makemigrations music
+
+	python manage.py migrate
+	"
+
+
+
+10 : Now to add data through admin panel make following changes inside music/admin.py
+go into admin.py file inside music
+	"
+	from .models import Album, Song
+
+	admin.site.register(Album)
+	admin.site.register(Song)
+	"
+
+
+11 : Filtering database results
+now u will get some object inside <> brackets but we can't understand that data so lets make some chnages inside models.py file
+	"
+	inside Album class
+		def __str__(self):
+			return self.album_title + ' - ' + self.artist
+	"
+	"
+	inside Song class
+		def __str__(self):
+			return self.song_title
+	"
+restart server
+
+Now visit following link again
+127.0.0.1:8000/admin
+
+
+
+12 : Settings for image upload functionality
+First create media folder inside main folder of project
+
+After that add following code inside settings.py at bottom of the file
+	"
+	MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+	MEDIA_URL = '/media/'
+	"
+
+
+13 : Replace main urls.py file code with following code
+	"
+	from django.conf.urls import include, url
+	from django.contrib import admin
+	from django.conf import settings
+	from django.conf.urls.static import static
+
+	urlpatterns = [
+			url(r'^music/', include('music.urls')),
+	    url(r'^admin/', admin.site.urls),
+	]
+
+	if settings.DEBUG:
+		urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+		urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+	"
+
+N Try to add data inside album and songs with some images
+
+
+14 : Change music/views.py file
+Replace following code with complete code inside music/views.py
+	"
+	from django.shortcuts import render, get_object_or_404
+	from .models import Album, Song
+
+
+	def index(request):
+		all_albums = Album.objects.all()
+		return render(request, 'music/index.html', { 'all_albums' : all_albums })
+	"
+
+
+
+15 : Now create template folder and related files
+Create templates folder inside music folder and inside music/templates folder create music folder.
+Inside latest created folder music i.e. music/templates/music create index.html file
+	"
+	{% if all_albums %}
+		<h3>Here are all my albums</h3>
+		<ul>
+			{% for album in all_albums %}
+			<img src="{{ album.album_logo.url }}">
+			<li><a href="#"> {{ album.album_title }} </a></li>
+			{% endfor %}
+		</ul>
+	{% else %}
+		<h3>You don't have any album.</h3>
+	{% endif %}
+	"
+
+Visit 127.0.0.1:8000/music to see the images with data.
